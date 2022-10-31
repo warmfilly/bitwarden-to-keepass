@@ -12,9 +12,10 @@ type BitwardenFolder struct {
 }
 
 type BitwardenItem struct {
-	Id    string
-	Name  string
-	Login BitwardenLogin
+	Id       string
+	Name     string
+	FolderId string
+	Login    BitwardenLogin
 }
 
 type BitwardenLogin struct {

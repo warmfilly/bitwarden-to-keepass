@@ -64,29 +64,35 @@ func createKeepassDatabase(vault BitwardenDatabase, path string, password string
 	rootGroup := gokeepasslib.NewGroup()
 	rootGroup.Name = "root"
 
-	for _, item := range vault.Items {
-		entry := getEntry(item)
-		_ = entry
-		rootGroup.Entries = append(rootGroup.Entries, entry)
+	//var subgroups map[string]gokeepasslib.Group
+	subgroups := make(map[string]gokeepasslib.Group)
+
+	// Add all subgroups
+	for _, folder := range vault.Folders {
+		subgroup := gokeepasslib.NewGroup()
+		subgroup.Name = folder.Name
+		subgroups[folder.Id] = subgroup
 	}
 
-	// entry := gokeepasslib.NewEntry()
-	// entry.Values = append(entry.Values, mkValue("Title", "My GMail password"))
-	// entry.Values = append(entry.Values, mkValue("UserName", "example@gmail.com"))
-	// entry.Values = append(entry.Values, mkProtectedValue("Password", "hunter2"))
+	for _, item := range vault.Items {
+		entry := getEntry(item)
 
-	// demonstrate creating sub group (we'll leave it empty because we're lazy)
-	// subGroup := gokeepasslib.NewGroup()
-	// subGroup.Name = "sub group"
+		if item.FolderId == "" {
+			//add to root
+			rootGroup.Entries = append(rootGroup.Entries, entry)
+		} else {
+			//add to subgroup
+			subgroup := subgroups[item.FolderId]
+			subgroup.Entries = append(subgroups[item.FolderId].Entries, entry)
 
-	// subEntry := gokeepasslib.NewEntry()
-	// subEntry.Values = append(subEntry.Values, mkValue("Title", "Another password"))
-	// subEntry.Values = append(subEntry.Values, mkValue("UserName", "johndough"))
-	// subEntry.Values = append(subEntry.Values, mkProtectedValue("Password", "123456"))
+			subgroups[item.FolderId] = subgroup
+		}
 
-	// subGroup.Entries = append(subGroup.Entries, subEntry)
+	}
 
-	// rootGroup.Groups = append(rootGroup.Groups, subGroup)
+	for _, subgroup := range subgroups {
+		rootGroup.Groups = append(rootGroup.Groups, subgroup)
+	}
 
 	// now create the database containing the root group
 	db := &gokeepasslib.Database{
