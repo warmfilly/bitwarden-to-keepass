@@ -11,9 +11,10 @@
             "mode": "auto",
             "debugAdapter": "dlv-dap",
             "program": "${workspaceFolder}",
+            "console": "integratedTerminal",
             "args": [
-                "--bw-session", "token",
-                "--database-path", "~/passwords/file",
+                "--bw-session", "VlrXZ41uyJxBJrwSKlBuCa/cLMKkRTS0A6jjRAym7IeJZ5cLunfQg3RW6ukZ998agxqL2n9UF6DkYF1QXAFsgQ==",
+                "--database-path", "/home/warm/passwords/file.kdbx",
                 "--database-password", "password123"
             ]
         }
