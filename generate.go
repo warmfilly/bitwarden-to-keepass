@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -10,26 +11,31 @@ import (
 	w "github.com/tobischo/gokeepasslib/v3/wrappers"
 )
 
-func GenerateKeepassDatabase(opts options) {
-	vault := exportBitwardenVault(opts.BitwardenSession)
+func GenerateKeepassDatabase(opts options) error {
+	vault, err := exportBitwardenVault(opts.BitwardenSession)
+
+	if err != nil {
+		return err
+	}
 	createKeepassDatabase(vault, opts.DatabasePath, opts.DatabasePassword)
+
+	return nil
 }
 
-func exportBitwardenVault(bitwardenSession string) BitwardenDatabase {
+func exportBitwardenVault(bitwardenSession string) (BitwardenDatabase, error) {
 	out, err := exec.Command("/usr/bin/bw", "export", "--format", "json", "--raw", "--session", bitwardenSession).Output()
 
-	if err != nil {
-		panic(err)
+	if err != nil || len(out) <= 1 {
+		return BitwardenDatabase{}, errors.New("failed to export Bitwarden vault")
 	}
 
-	var db BitwardenDatabase
-	err = json.Unmarshal(out, &db)
+	var vault BitwardenDatabase
 
-	if err != nil {
-		panic(err)
+	if err = json.Unmarshal(out, &vault); err != nil {
+		return BitwardenDatabase{}, errors.New("invalid vault data")
 	}
 
-	return db
+	return vault, nil
 }
 
 func createKeepassDatabase(vault BitwardenDatabase, path string, password string) {
