@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"os"
 	"os/exec"
@@ -32,50 +31,67 @@ func mkProtectedValue(key string, value string) gokeepasslib.ValueData {
 }
 
 func GenerateKeepassDatabase(opts options) {
-	file, err := os.Create(opts.DatabasePath)
+	vault, exportErr := exportBitwardenVault(opts.BitwardenSession)
+
+	if exportErr != nil {
+		panic(exportErr)
+	}
+
+	createKeepassDatabase(vault, opts.DatabasePath, opts.DatabasePassword)
+
+}
+
+func exportBitwardenVault(bitwardenSession string) (BitwardenDatabase, error) {
+	out, err := exec.Command("/usr/bin/bw", "export", "--format", "json", "--raw", "--session", bitwardenSession).Output()
+
+	if err == nil {
+		var db BitwardenDatabase
+		err = json.Unmarshal(out, &db)
+		return db, err
+	}
+
+	return BitwardenDatabase{}, err
+}
+
+func createKeepassDatabase(vault BitwardenDatabase, path string, password string) {
+	file, err := os.Create(path)
 	if err != nil {
 		panic(err)
 	}
 	defer file.Close()
 
-	out, err := exec.Command("/usr/bin/bw", "export", "--format", "json", "--raw", "--session", opts.BitwardenSession).Output()
-
-	if err != nil {
-		fmt.Print(err)
-		return
-	}
-
-	var dec BitwardenDatabase
-	err = json.Unmarshal(out, &dec)
-
 	// create root group
 	rootGroup := gokeepasslib.NewGroup()
 	rootGroup.Name = "root"
 
-	entry := gokeepasslib.NewEntry()
-	entry.Values = append(entry.Values, mkValue("Title", "My GMail password"))
-	entry.Values = append(entry.Values, mkValue("UserName", "example@gmail.com"))
-	entry.Values = append(entry.Values, mkProtectedValue("Password", "hunter2"))
+	for _, item := range vault.Items {
+		entry := getEntry(item)
+		_ = entry
+		rootGroup.Entries = append(rootGroup.Entries, entry)
+	}
 
-	rootGroup.Entries = append(rootGroup.Entries, entry)
+	// entry := gokeepasslib.NewEntry()
+	// entry.Values = append(entry.Values, mkValue("Title", "My GMail password"))
+	// entry.Values = append(entry.Values, mkValue("UserName", "example@gmail.com"))
+	// entry.Values = append(entry.Values, mkProtectedValue("Password", "hunter2"))
 
 	// demonstrate creating sub group (we'll leave it empty because we're lazy)
-	subGroup := gokeepasslib.NewGroup()
-	subGroup.Name = "sub group"
+	// subGroup := gokeepasslib.NewGroup()
+	// subGroup.Name = "sub group"
 
-	subEntry := gokeepasslib.NewEntry()
-	subEntry.Values = append(subEntry.Values, mkValue("Title", "Another password"))
-	subEntry.Values = append(subEntry.Values, mkValue("UserName", "johndough"))
-	subEntry.Values = append(subEntry.Values, mkProtectedValue("Password", "123456"))
+	// subEntry := gokeepasslib.NewEntry()
+	// subEntry.Values = append(subEntry.Values, mkValue("Title", "Another password"))
+	// subEntry.Values = append(subEntry.Values, mkValue("UserName", "johndough"))
+	// subEntry.Values = append(subEntry.Values, mkProtectedValue("Password", "123456"))
 
-	subGroup.Entries = append(subGroup.Entries, subEntry)
+	// subGroup.Entries = append(subGroup.Entries, subEntry)
 
-	rootGroup.Groups = append(rootGroup.Groups, subGroup)
+	// rootGroup.Groups = append(rootGroup.Groups, subGroup)
 
 	// now create the database containing the root group
 	db := &gokeepasslib.Database{
 		Header:      gokeepasslib.NewHeader(),
-		Credentials: gokeepasslib.NewPasswordCredentials(opts.DatabasePassword),
+		Credentials: gokeepasslib.NewPasswordCredentials(password),
 		Content: &gokeepasslib.DBContent{
 			Meta: gokeepasslib.NewMetaData(),
 			Root: &gokeepasslib.RootData{
@@ -93,5 +109,14 @@ func GenerateKeepassDatabase(opts options) {
 		panic(err)
 	}
 
-	log.Printf("Wrote kdbx file: %s", opts.DatabasePath)
+	log.Printf("Wrote kdbx file: %s", path)
+}
+
+func getEntry(item BitwardenItem) gokeepasslib.Entry {
+	entry := gokeepasslib.NewEntry()
+	entry.Values = append(entry.Values, mkValue("Title", item.Name))
+	entry.Values = append(entry.Values, mkValue("UserName", item.Login.Username))
+	entry.Values = append(entry.Values, mkProtectedValue("Password", item.Login.Password))
+
+	return entry
 }
