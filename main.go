@@ -1,15 +1,21 @@
 package main
 
-import "github.com/jessevdk/go-flags"
+import (
+	"fmt"
+	"os"
+
+	"github.com/jessevdk/go-flags"
+)
 
 func main() {
 	opts := options{}
 
-	args, err := flags.Parse(&opts)
+	if _, err := flags.Parse(&opts); err != nil {
+		panic(err)
+	}
 
-	_ = args
-
-	if err == nil {
-		GenerateKeepassDatabase(opts)
+	if err := GenerateKeepassDatabase(opts); err != nil {
+		fmt.Println(err)
+		os.Exit(1)
 	}
 }
