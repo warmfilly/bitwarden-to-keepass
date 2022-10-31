@@ -1,4 +1,4 @@
-module github.com/Warmfilly/bitwarden-to-keepass
+module github.com/warmfilly/bitwarden-to-keepass
 
 go 1.19
 
