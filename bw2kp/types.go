@@ -1,4 +1,4 @@
-package main
+package bw2kp
 
 type BitwardenDatabase struct {
 	Encrypted bool

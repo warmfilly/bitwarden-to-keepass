@@ -1,4 +1,4 @@
-package main
+package bw2kp
 
 import (
 	"encoding/json"
@@ -11,7 +11,7 @@ import (
 	w "github.com/tobischo/gokeepasslib/v3/wrappers"
 )
 
-func GenerateKeepassDatabase(opts options) error {
+func GenerateKeepassDatabase(opts Options) error {
 	vault, err := exportBitwardenVault(opts.BitwardenSession)
 
 	if err != nil {
