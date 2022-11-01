@@ -1,4 +1,4 @@
-package main
+package bw2kp
 
 import (
 	"encoding/json"
@@ -11,7 +11,7 @@ import (
 	w "github.com/tobischo/gokeepasslib/v3/wrappers"
 )
 
-func GenerateKeepassDatabase(opts options) error {
+func GenerateKeepassDatabase(opts Options) error {
 	vault, err := exportBitwardenVault(opts.BitwardenSession)
 
 	if err != nil {
@@ -22,23 +22,23 @@ func GenerateKeepassDatabase(opts options) error {
 	return nil
 }
 
-func exportBitwardenVault(bitwardenSession string) (BitwardenDatabase, error) {
+func exportBitwardenVault(bitwardenSession string) (bitwardenDatabase, error) {
 	out, err := exec.Command("/usr/bin/bw", "export", "--format", "json", "--raw", "--session", bitwardenSession).Output()
 
 	if err != nil || len(out) <= 1 {
-		return BitwardenDatabase{}, errors.New("failed to export Bitwarden vault")
+		return bitwardenDatabase{}, errors.New("failed to export Bitwarden vault")
 	}
 
-	var vault BitwardenDatabase
+	var vault bitwardenDatabase
 
 	if err = json.Unmarshal(out, &vault); err != nil {
-		return BitwardenDatabase{}, errors.New("invalid vault data")
+		return bitwardenDatabase{}, errors.New("invalid vault data")
 	}
 
 	return vault, nil
 }
 
-func createKeepassDatabase(vault BitwardenDatabase, path string, password string) {
+func createKeepassDatabase(vault bitwardenDatabase, path string, password string) {
 	file, err := os.Create(path)
 	if err != nil {
 		panic(err)
@@ -88,7 +88,7 @@ func createKeepassDatabase(vault BitwardenDatabase, path string, password string
 	fmt.Printf("Wrote kdbx file at %v\n", path)
 }
 
-func createSubgroups(vault BitwardenDatabase) map[string]gokeepasslib.Group {
+func createSubgroups(vault bitwardenDatabase) map[string]gokeepasslib.Group {
 	subgroups := make(map[string]gokeepasslib.Group)
 
 	// Add all subgroups
@@ -101,7 +101,7 @@ func createSubgroups(vault BitwardenDatabase) map[string]gokeepasslib.Group {
 	return subgroups
 }
 
-func getEntry(item BitwardenItem) gokeepasslib.Entry {
+func getEntry(item bitwardenItem) gokeepasslib.Entry {
 	entry := gokeepasslib.NewEntry()
 	entry.Values = append(entry.Values, mkValue("Title", item.Name))
 	entry.Values = append(entry.Values, mkValue("UserName", item.Login.Username))
