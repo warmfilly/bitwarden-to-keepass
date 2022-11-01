@@ -29,9 +29,19 @@ func exportBitwardenVault(bitwardenSession string) (bitwardenVault, error) {
 		return bitwardenVault{}, errors.New("failed to export Bitwarden vault")
 	}
 
+	vault, vaultError := marshalBitwardenVault(out)
+
+	if vaultError != nil {
+		return bitwardenVault{}, errors.New("invalid vault data")
+	}
+
+	return vault, nil
+}
+
+func marshalBitwardenVault(vaultJson []byte) (bitwardenVault, error) {
 	var vault bitwardenVault
 
-	if err = json.Unmarshal(out, &vault); err != nil {
+	if err := json.Unmarshal(vaultJson, &vault); err != nil {
 		return bitwardenVault{}, errors.New("invalid vault data")
 	}
 
