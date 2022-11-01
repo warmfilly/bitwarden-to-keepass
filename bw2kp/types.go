@@ -1,25 +1,25 @@
 package bw2kp
 
-type BitwardenDatabase struct {
+type bitwardenDatabase struct {
 	Encrypted bool
-	Folders   []BitwardenFolder
-	Items     []BitwardenItem
+	Folders   []bitwardenFolder
+	Items     []bitwardenItem
 }
 
-type BitwardenFolder struct {
+type bitwardenFolder struct {
 	Id   string
 	Name string
 }
 
-type BitwardenItem struct {
+type bitwardenItem struct {
 	Id       string
 	Name     string
 	FolderId string
 	Notes    string
-	Login    BitwardenLogin
+	Login    bitwardenLogin
 }
 
-type BitwardenLogin struct {
+type bitwardenLogin struct {
 	Username string
 	Password string
 }
