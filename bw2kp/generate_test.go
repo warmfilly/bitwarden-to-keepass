@@ -58,10 +58,10 @@ func TestCreateKeepassDatabase(t *testing.T) {
 	vault, err := getBitwardenVault()
 
 	if err != nil {
-		t.Fatal("Failed to get Bitwarden Vault")
+		t.Fatalf("Failed to get Bitwarden Vault: %v", err)
 	}
 
 	if err = createKeepassDatabase(vault, "../artifacts/db.kdbx", "password"); err != nil {
-		t.Fatal("Failed to create Keepass database")
+		t.Fatalf("Failed to create Keepass database: %v", err)
 	}
 }
