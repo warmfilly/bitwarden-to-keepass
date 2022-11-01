@@ -1,6 +1,6 @@
 package bw2kp
 
-type bitwardenDatabase struct {
+type bitwardenVault struct {
 	Encrypted bool
 	Folders   []bitwardenFolder
 	Items     []bitwardenItem

@@ -22,23 +22,23 @@ func GenerateKeepassDatabase(opts Options) error {
 	return nil
 }
 
-func exportBitwardenVault(bitwardenSession string) (bitwardenDatabase, error) {
+func exportBitwardenVault(bitwardenSession string) (bitwardenVault, error) {
 	out, err := exec.Command("/usr/bin/bw", "export", "--format", "json", "--raw", "--session", bitwardenSession).Output()
 
 	if err != nil || len(out) <= 1 {
-		return bitwardenDatabase{}, errors.New("failed to export Bitwarden vault")
+		return bitwardenVault{}, errors.New("failed to export Bitwarden vault")
 	}
 
-	var vault bitwardenDatabase
+	var vault bitwardenVault
 
 	if err = json.Unmarshal(out, &vault); err != nil {
-		return bitwardenDatabase{}, errors.New("invalid vault data")
+		return bitwardenVault{}, errors.New("invalid vault data")
 	}
 
 	return vault, nil
 }
 
-func createKeepassDatabase(vault bitwardenDatabase, path string, password string) {
+func createKeepassDatabase(vault bitwardenVault, path string, password string) {
 	file, err := os.Create(path)
 	if err != nil {
 		panic(err)
@@ -88,7 +88,7 @@ func createKeepassDatabase(vault bitwardenDatabase, path string, password string
 	fmt.Printf("Wrote kdbx file at %v\n", path)
 }
 
-func createSubgroups(vault bitwardenDatabase) map[string]gokeepasslib.Group {
+func createSubgroups(vault bitwardenVault) map[string]gokeepasslib.Group {
 	subgroups := make(map[string]gokeepasslib.Group)
 
 	// Add all subgroups
