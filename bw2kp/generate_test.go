@@ -1,6 +1,7 @@
 package bw2kp
 
 import (
+	"os"
 	"testing"
 )
 
@@ -61,7 +62,22 @@ func TestCreateKeepassDatabase(t *testing.T) {
 		t.Fatalf("Failed to get Bitwarden Vault: %v", err)
 	}
 
+	if !directoryExists("../artifacts") {
+		if err = os.Mkdir("../artifacts", os.ModePerm); err != nil {
+			t.Fatalf("Could not create artifacts directory: %v", err)
+		}
+	}
+
 	if err = createKeepassDatabase(vault, "../artifacts/db.kdbx", "password"); err != nil {
 		t.Fatalf("Failed to create Keepass database: %v", err)
 	}
+}
+
+func directoryExists(path string) bool {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true
+	}
+
+	return false
 }
