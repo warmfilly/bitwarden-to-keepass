@@ -15,6 +15,7 @@ type BitwardenItem struct {
 	Id       string
 	Name     string
 	FolderId string
+	Notes    string
 	Login    BitwardenLogin
 }
 
