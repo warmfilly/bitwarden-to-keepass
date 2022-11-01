@@ -15,5 +15,6 @@
 # vendor/
 
 .vscode/
+artifacts/
 __debug_bin
 bitwarden-to-keepass
