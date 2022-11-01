@@ -17,9 +17,8 @@ func GenerateKeepassDatabase(opts Options) error {
 	if err != nil {
 		return err
 	}
-	createKeepassDatabase(vault, opts.DatabasePath, opts.DatabasePassword)
 
-	return nil
+	return createKeepassDatabase(vault, opts.DatabasePath, opts.DatabasePassword)
 }
 
 func exportBitwardenVault(bitwardenSession string) (bitwardenVault, error) {
@@ -29,19 +28,29 @@ func exportBitwardenVault(bitwardenSession string) (bitwardenVault, error) {
 		return bitwardenVault{}, errors.New("failed to export Bitwarden vault")
 	}
 
-	var vault bitwardenVault
+	vault, vaultError := marshalBitwardenVault(out)
 
-	if err = json.Unmarshal(out, &vault); err != nil {
+	if vaultError != nil {
 		return bitwardenVault{}, errors.New("invalid vault data")
 	}
 
 	return vault, nil
 }
 
-func createKeepassDatabase(vault bitwardenVault, path string, password string) {
+func marshalBitwardenVault(vaultJson []byte) (bitwardenVault, error) {
+	var vault bitwardenVault
+
+	if err := json.Unmarshal(vaultJson, &vault); err != nil {
+		return bitwardenVault{}, errors.New("invalid vault data")
+	}
+
+	return vault, nil
+}
+
+func createKeepassDatabase(vault bitwardenVault, path string, password string) error {
 	file, err := os.Create(path)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	defer file.Close()
 
@@ -82,10 +91,11 @@ func createKeepassDatabase(vault bitwardenVault, path string, password string) {
 
 	keepassEncoder := gokeepasslib.NewEncoder(file)
 	if err := keepassEncoder.Encode(db); err != nil {
-		panic(err)
+		return err
 	}
 
 	fmt.Printf("Wrote kdbx file at %v\n", path)
+	return nil
 }
 
 func createSubgroups(vault bitwardenVault) map[string]gokeepasslib.Group {
