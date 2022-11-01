@@ -106,6 +106,7 @@ func getEntry(item BitwardenItem) gokeepasslib.Entry {
 	entry.Values = append(entry.Values, mkValue("Title", item.Name))
 	entry.Values = append(entry.Values, mkValue("UserName", item.Login.Username))
 	entry.Values = append(entry.Values, mkProtectedValue("Password", item.Login.Password))
+	entry.Values = append(entry.Values, mkValue("Notes", item.Notes))
 
 	return entry
 }
